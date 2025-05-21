@@ -1,0 +1,8 @@
+res://Scenes/Game.tscn
+res://Scenes/GamePostProcessing.tscn
+res://Scenes/Ghost.tscn
+res://Scenes/Pacman.tscn
+res://Scripts/Actor.cs
+res://Scripts/Game.cs
+res://Scripts/Ghost.cs
+res://Scripts/Pacman.cs

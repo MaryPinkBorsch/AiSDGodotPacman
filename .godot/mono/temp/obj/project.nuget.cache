@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "dgSpecHash": "KaZllPSQV5g=",
+  "success": true,
+  "projectFilePath": "D:\\AiSD Pacman\\GodotPacman\\Pacman.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Masya\\.nuget\\packages\\godot.sourcegenerators\\4.4.1\\godot.sourcegenerators.4.4.1.nupkg.sha512",
+    "C:\\Users\\Masya\\.nuget\\packages\\godotsharp\\4.4.1\\godotsharp.4.4.1.nupkg.sha512",
+    "C:\\Users\\Masya\\.nuget\\packages\\godotsharpeditor\\4.4.1\\godotsharpeditor.4.4.1.nupkg.sha512"
+  ],
+  "logs": []
+}
