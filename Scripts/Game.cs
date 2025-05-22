@@ -7,7 +7,7 @@ public partial class Game : Node2D
 	private enum FreezeType
 	{
 		None	 = 0,
-		Ready	 = (1 << 1),  // New round started	
+		Ready	 = (1 << 1),  // новый раунд игры начался	
 		EatGhost = (1 << 2),  // Pacman has eaten a ghost
 		Dead     = (1 << 3),  // Pacman was eaten by a ghost
 		Won		 = (1 << 4),  // round won (all dots eaten)
