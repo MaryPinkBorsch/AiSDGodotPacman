@@ -8,26 +8,26 @@ public partial class Game : Node2D
 	{
 		None	 = 0,
 		Ready	 = (1 << 1),  // New round started	
-        EatGhost = (1 << 2),  // Pacman has eaten a ghost
-        Dead     = (1 << 3),  // Pacman was eaten by a ghost
+		EatGhost = (1 << 2),  // Pacman has eaten a ghost
+		Dead     = (1 << 3),  // Pacman was eaten by a ghost
 		Won		 = (1 << 4),  // round won (all dots eaten)
 		GameOver = (1 << 5),  // round lost and no lifes left
 		Reset    = (1 << 6),  // for freeze the game when reset is called (to avoid update actors in the first tick)
-    }
+	}
 
-    public enum FruitType
-    {
-        Cherries,
-        Strawberry,
-        Peach,
-        Apple,
-        Grapes,
-        Galaxian,
-        Bell,
-        Key
-    }
+	public enum FruitType
+	{
+		Cherries,
+		Strawberry,
+		Peach,
+		Apple,
+		Grapes,
+		Galaxian,
+		Bell,
+		Key
+	}
 
-    // game constants
+	// game constants
 
 	private readonly Vector2I fruitTile = new Vector2I(112, 140) / Maze.TileSize;
 
@@ -43,16 +43,16 @@ public partial class Game : Node2D
 	private readonly int roundWonFreezeTicks = 4 * 60;
 	private readonly int fruitActiveTicks = 560;
 
-    // scenes pacman and ghosts
+	// scenes pacman and ghosts
 
-    [Export]
+	[Export]
 	private PackedScene pacmanScene;
 
 	[Export]
 	private PackedScene ghostScene;
 
-    [Export]
-    private Texture2D dotsTexture;
+	[Export]
+	private Texture2D dotsTexture;
 
 	[Export]
 	private Texture2D readyTextTexture;
@@ -67,27 +67,29 @@ public partial class Game : Node2D
 	private Texture2D fruitTexture;
 
 	private Label scoreText;
+	private Label debugText; // элемент UI показывающий режим (нормальный и режим демонстрации пути)
 	private Label highScoreText;
 	private Sprite2D mazeSprite;
 	private ColorRect ghostDoorSprite; // "sprite"
 
-    private Pacman pacman;
+	private Pacman pacman;
 	private Ghost[] ghosts = new Ghost[4];
 
 	// sounds
 
 	private AudioStreamPlayer munch1Sound;
-    private AudioStreamPlayer munch2Sound;
+	private AudioStreamPlayer munch2Sound;
 	private AudioStreamPlayer fruitSound;
 	private AudioStreamPlayer ghostEatenSound;
 	private AudioStreamPlayer sirenSound;
 	private AudioStreamPlayer powerPelletSound;
 
-    // game control variables
+	// game control variables
 
-    private int ticks;
+	private int ticks;
 	private int freeze;
 	private int level;
+	private int debugmode; // режим демонстрации пути
 	private int score;
 	private int highScore;
 	private int numGhostsEaten;
@@ -95,13 +97,13 @@ public partial class Game : Node2D
 	private int numDotsEaten;
 	private int numDotsEatenThisRound;
 
-    // triggers
+	// triggers
 
-    private List<Trigger> triggers = new List<Trigger>();
-    private Trigger dotEatenTrigger;
+	private List<Trigger> triggers = new List<Trigger>();
+	private Trigger dotEatenTrigger;
 	private Trigger pillEatenTrigger;
-    private Trigger ghostEatenUnFreezeTrigger;
-    private Trigger pacmanEatenTrigger;
+	private Trigger ghostEatenUnFreezeTrigger;
+	private Trigger pacmanEatenTrigger;
 	private Trigger readyStartedTrigger;
 	private Trigger roundStartedTrigger;
 	private Trigger roundWonTrigger;
@@ -124,25 +126,25 @@ public partial class Game : Node2D
 
 		if (highScoreFile != null)
 		{
-            highScore = (int)highScoreFile.Get32();
-        }
+			highScore = (int)highScoreFile.Get32();
+		}
 		else
 		{
-            highScoreFile = FileAccess.Open("user://highscore.data", FileAccess.ModeFlags.Write);
-            highScoreFile.Store32((uint)(highScore = 39870));
-        }
+			highScoreFile = FileAccess.Open("user://highscore.data", FileAccess.ModeFlags.Write);
+			highScoreFile.Store32((uint)(highScore = 39870));
+		}
 
 		highScoreFile.Close();
-    }
+	}
 
 	private void SaveHighScore()
 	{
-        FileAccess highScoreFile = FileAccess.Open("user://highscore.data", FileAccess.ModeFlags.Write);
-        highScoreFile.Store32((uint)highScore);
+		FileAccess highScoreFile = FileAccess.Open("user://highscore.data", FileAccess.ModeFlags.Write);
+		highScoreFile.Store32((uint)highScore);
 		highScoreFile.Close();
-    }
+	}
 
-    /* RESET */
+	/* RESET */
 
 	private void StopSounds()
 	{
@@ -158,39 +160,39 @@ public partial class Game : Node2D
 		}
 	}
 
-    private void DisableTriggers()
+	private void DisableTriggers()
 	{
 		foreach (Trigger t in triggers)
 		{
 			t.Disable();
 		}
-    }
+	}
 
 	private void ResetActors()
 	{
-        // pacman
+		// pacman
 
-        pacman.Visible = true;
-        pacman.SetStartState();
+		pacman.Visible = true;
+		pacman.SetStartState();
 
-        // ghosts
+		// ghosts
 
 		foreach (Ghost g in ghosts)
 		{
 			g.Visible = true;
 			g.SetStartState();
-        }
-    }
+		}
+	}
 
 	private void Reset()
 	{
-        // reset some control variables
+		// reset some control variables
 
-        ticks = 0;
+		ticks = 0;
 		level = 1;
-        score = 0;
+		score = 0;
 		SetFreezeTo(FreezeType.Reset);
-        numGhostsEaten = 0;
+		numGhostsEaten = 0;
 		numLifes = 3;
 		numDotsEaten = 0;
 		numDotsEatenThisRound = 0;
@@ -200,17 +202,17 @@ public partial class Game : Node2D
 		// disable triggers & reset actors and maze
 
 		ResetTriggers();
-        ResetActors();
-        Maze.Reset();
+		ResetActors();
+		Maze.Reset();
 
-        // reset maze color and show door
+		// reset maze color and show door
 
-        mazeSprite.SelfModulate = new Color("417ae2");
-        ghostDoorSprite.Visible = true;
+		mazeSprite.SelfModulate = new Color("417ae2");
+		ghostDoorSprite.Visible = true;
 
-        // start ready trigger
+		// start ready trigger
 
-        readyStartedTrigger.Start();
+		readyStartedTrigger.Start();
 	}
 
 	/* GAME */
@@ -249,13 +251,13 @@ public partial class Game : Node2D
 
 	private void InitRound()
 	{
-        // disable timers
+		// disable timers
 
-        DisableTriggers();
+		DisableTriggers();
 
-        // reset actors
+		// reset actors
 
-        ResetActors();
+		ResetActors();
 
 		// set freeze to ready
 
@@ -266,13 +268,13 @@ public partial class Game : Node2D
 		if (numDotsEaten >= Maze.NumDots)
 		{
 			numDotsEaten = 0;
-            level++;
-            Maze.Reset();
-        }
+			level++;
+			Maze.Reset();
+		}
 		else
 		{
-            numLifes--;
-        }
+			numLifes--;
+		}
 
 		// reset number of dots eaten this round
 
@@ -281,8 +283,8 @@ public partial class Game : Node2D
 		// reset maze color and show door
 
 		mazeSprite.SelfModulate = new Color("417ae2");
-        ghostDoorSprite.Visible = true;
-    }
+		ghostDoorSprite.Visible = true;
+	}
 
 	/* PACMAN RELATED */
 
@@ -300,60 +302,60 @@ public partial class Game : Node2D
 		}
 
 		return true;
-    }
+	}
 
 	/* GHOST RELATED */
 
-    // ghost mode
+	// ghost mode
 
-    private Ghost.Mode GhostScatterChasePhase()
-    {
+	private Ghost.Mode GhostScatterChasePhase()
+	{
 		int s = roundStartedTrigger.TicksSinceStarted();
 
-        if (s < 7 * 60) return Ghost.Mode.Scatter;
-        else if (s < 27 * 60) return Ghost.Mode.Chase;
-        else if (s < 34 * 60) return Ghost.Mode.Scatter;
-        else if (s < 54 * 60) return Ghost.Mode.Chase;
-        else if (s < 59 * 60) return Ghost.Mode.Scatter;
-        else if (s < 79 * 60) return Ghost.Mode.Chase;
-        else if (s < 84 * 60) return Ghost.Mode.Scatter;
-        
+		if (s < 7 * 60) return Ghost.Mode.Scatter;
+		else if (s < 27 * 60) return Ghost.Mode.Chase;
+		else if (s < 34 * 60) return Ghost.Mode.Scatter;
+		else if (s < 54 * 60) return Ghost.Mode.Chase;
+		else if (s < 59 * 60) return Ghost.Mode.Scatter;
+		else if (s < 79 * 60) return Ghost.Mode.Chase;
+		else if (s < 84 * 60) return Ghost.Mode.Scatter;
+		
 		return Ghost.Mode.Chase;
-    }
+	}
 
-    // update the ghost mode
+	// update the ghost mode
 
 	private bool GhostLeaveHouse(Ghost g)
 	{
-        switch (g.type)
-        {
-            case Ghost.Type.Pinky:
-                if (numDotsEatenThisRound >= 7)
-                {
+		switch (g.type)
+		{
+			case Ghost.Type.Pinky:
+				if (numDotsEatenThisRound >= 7)
+				{
 					return true;
-                }
-                break;
-            case Ghost.Type.Inky:
-                if (numDotsEatenThisRound >= 17)
-                {
-                    return true;
-                }
-                break;
-            case Ghost.Type.Clyde:
-                if (numDotsEatenThisRound >= 30)
-                {
-                    return true;
-                }
-                break;
-        }
+				}
+				break;
+			case Ghost.Type.Inky:
+				if (numDotsEatenThisRound >= 17)
+				{
+					return true;
+				}
+				break;
+			case Ghost.Type.Clyde:
+				if (numDotsEatenThisRound >= 30)
+				{
+					return true;
+				}
+				break;
+		}
 
 		return false;
-    }
+	}
 
 	private bool IsGhostFrightened(Ghost g)
 	{
 		return ghostFrightenedTrigger[(int)g.type].IsActive();
-    }
+	}
 
 	/* ACTORS RELATED (BOTH PACMAN AND GHOSTS) */
 
@@ -390,65 +392,65 @@ public partial class Game : Node2D
 
 	private void UpdateActors()
 	{
-        /* TICK PACMAN */
+		/* TICK PACMAN */
 
-        if (PacmanShouldMove())
-        {
-            pacman.Tick(ticks);
-        }
+		if (PacmanShouldMove())
+		{
+			pacman.Tick(ticks);
+		}
 
-        // Handle dot and pill eating
+		// Handle dot and pill eating
 
-        Vector2I pacmanTile = pacman.PositionToTile();
+		Vector2I pacmanTile = pacman.PositionToTile();
 		Maze.Tile mazeTile = Maze.GetTile(pacmanTile);
 
-        if (mazeTile == Maze.Tile.Dot || mazeTile == Maze.Tile.Pill)
+		if (mazeTile == Maze.Tile.Dot || mazeTile == Maze.Tile.Pill)
 		{
-            switch (mazeTile)
-            {
-                case Maze.Tile.Dot:
+			switch (mazeTile)
+			{
+				case Maze.Tile.Dot:
 					dotEatenTrigger.Start();
 
-                    // increment score and number of dots eaten
+					// increment score and number of dots eaten
 
-                    score += dotScore;
+					score += dotScore;
 
-                    break;
-                case Maze.Tile.Pill:
+					break;
+				case Maze.Tile.Pill:
 					pillEatenTrigger.Start();
 
-                    // reset num of ghost eaten
+					// reset num of ghost eaten
 
-                    numGhostsEaten = 0;
+					numGhostsEaten = 0;
 
-                    // set ghosts to be in frightened  mode
+					// set ghosts to be in frightened  mode
 
-                    foreach (Ghost g in ghosts)
-                    {
-                        if (g.mode == Ghost.Mode.Chase || g.mode == Ghost.Mode.Scatter || g.mode == Ghost.Mode.Frightened)
-                        {
+					foreach (Ghost g in ghosts)
+					{
+						if (g.mode == Ghost.Mode.Chase || g.mode == Ghost.Mode.Scatter || g.mode == Ghost.Mode.Frightened)
+						{
 							ghostFrightenedTrigger[(int)g.type].Start();
-                        }
-                    }
+						}
+					}
 
-                    // increment score and number of dots eaten
+					// increment score and number of dots eaten
 
-                    score += pillScore;
+					score += pillScore;
 
 					// play sound
 
 					StopSounds();
 					powerPelletSound.Play();
 
-                    break;
-            }
+					break;
+			}
 
-            // clear tile, increment number of dots and check if there are no dots left
+			// clear tile, increment number of dots and check if there are no dots left
 
-            Maze.SetTile(pacmanTile, Maze.Tile.Empty);
+			Maze.SetTile(pacmanTile, Maze.Tile.Empty);
 
 			UpdateDotsEaten();
-        }
+		}
 
 		// check if pacman eats fruit
 
@@ -477,15 +479,15 @@ public partial class Game : Node2D
 			{
 				if (g.mode == Ghost.Mode.Frightened)
 				{
-                    // ghost has been eaten
+					// ghost has been eaten
 
-                    // freeze the game
+					// freeze the game
 
-                    FreezeBy(FreezeType.EatGhost);
+					FreezeBy(FreezeType.EatGhost);
 
-                    // swap ghost mode to eyes
+					// swap ghost mode to eyes
 
-                    g.mode = Ghost.Mode.Eyes;
+					g.mode = Ghost.Mode.Eyes;
 
 					// disable frightened trigger
 
@@ -510,24 +512,24 @@ public partial class Game : Node2D
 				}
 				else if (g.mode == Ghost.Mode.Chase || g.mode == Ghost.Mode.Scatter)
 				{
-                    // pacman has been eaten
+					// pacman has been eaten
 
-                    // freeze the game
+					// freeze the game
 
-                    FreezeBy(FreezeType.Dead);
+					FreezeBy(FreezeType.Dead);
 
-                    // start pacman eaten trigger
+					// start pacman eaten trigger
 
-                    pacmanEatenTrigger.Start(pacmanEatenFreezeTicks);
+					pacmanEatenTrigger.Start(pacmanEatenFreezeTicks);
 
 					// check number of lifes
 
 					if (numLifes >= 1)
 					{
-                        // start readystarted trigger after (pacmanEatenFreezeTicks + pacmanDeathTicks) ticks
+						// start readystarted trigger after (pacmanEatenFreezeTicks + pacmanDeathTicks) ticks
 
-                        readyStartedTrigger.Start(pacmanEatenFreezeTicks + pacmanDeathTicks);
-                    }
+						readyStartedTrigger.Start(pacmanEatenFreezeTicks + pacmanDeathTicks);
+					}
 					else
 					{
 						// game over
@@ -542,32 +544,32 @@ public partial class Game : Node2D
 			}
 		}
 
-        /* TICK GHOSTS */
+		/* TICK GHOSTS */
 
-        foreach (Ghost g in ghosts)
-        {
+		foreach (Ghost g in ghosts)
+		{
 			g.UpdateGhostMode(GhostLeaveHouse, IsGhostFrightened, GhostScatterChasePhase);
 			g.UpdateTargetTile(pacman, ghosts);
-            g.Tick(ticks);
-        }
-    }
+			g.Tick(ticks);
+		}
+	}
 
 	private void UpdatePacmanSprite()
 	{
-        if (IsFrozenBy(FreezeType.EatGhost))
-        {
+		if (IsFrozenBy(FreezeType.EatGhost))
+		{
 			pacman.Visible = false;
-        }
+		}
 		else if (IsFrozenBy(FreezeType.Dead))
 		{
 			pacman.Visible = true;
 
-            if (pacmanEatenTrigger.IsActive())
-            {
-                int tick = pacmanEatenTrigger.TicksSinceStarted();
-                pacman.SetDeathSpriteAnimation(tick);
-            }
-        }
+			if (pacmanEatenTrigger.IsActive())
+			{
+				int tick = pacmanEatenTrigger.TicksSinceStarted();
+				pacman.SetDeathSpriteAnimation(tick);
+			}
+		}
 		else if (IsFrozenBy(FreezeType.Ready))
 		{
 			pacman.Visible = true;
@@ -580,28 +582,28 @@ public partial class Game : Node2D
 		else
 		{
 			pacman.Visible = true;
-            pacman.SetDefaultSpriteAnimation();
-        }
+			pacman.SetDefaultSpriteAnimation();
+		}
 	}
 
 	private void UpdateGhostSprite(Ghost g)
 	{
-        // check if it has just been eaten
+		// check if it has just been eaten
 
-        if (ghostEatenTrigger[(int)g.type].IsActive())
-        {
-            g.Visible = true;
-            g.SetScoreSprite(numGhostsEaten - 1);
-        }
-        else if (IsFrozenBy(FreezeType.Dead))
-        {
-            g.Visible = true;
+		if (ghostEatenTrigger[(int)g.type].IsActive())
+		{
+			g.Visible = true;
+			g.SetScoreSprite(numGhostsEaten - 1);
+		}
+		else if (IsFrozenBy(FreezeType.Dead))
+		{
+			g.Visible = true;
 
-            if (pacmanEatenTrigger.IsActive())
-            {
-                g.Visible = false;
-            }
-        }
+			if (pacmanEatenTrigger.IsActive())
+			{
+				g.Visible = false;
+			}
+		}
 		else if (IsFrozenBy(FreezeType.Won) || IsFrozenBy(FreezeType.GameOver))
 		{
 			g.Visible = false;
@@ -610,25 +612,25 @@ public partial class Game : Node2D
 		{
 			g.Visible = true;
 
-            // choose the sprite and animation to show
+			// choose the sprite and animation to show
 
-            switch (g.mode)
-            {
-                case Ghost.Mode.Frightened:
-                    int ticksSinceFrightened = ghostFrightenedTrigger[(int)g.type].TicksSinceStarted();
-                    int phase = (ticksSinceFrightened / 4) & 1;
-                    g.SetFrightenedSpriteAnimation(phase, ticksSinceFrightened > ghostFrightenedTicks - 60 && (ticksSinceFrightened & 0x10) != 0);
-                    break;
-                case Ghost.Mode.EnterHouse:
-                case Ghost.Mode.Eyes:
-                    g.SetEyesSprite();
-                    break;
-                default:
-                    g.SetDefaultSpriteAnimation();
-                    break;
-            }
-        }
-    }
+			switch (g.mode)
+			{
+				case Ghost.Mode.Frightened:
+					int ticksSinceFrightened = ghostFrightenedTrigger[(int)g.type].TicksSinceStarted();
+					int phase = (ticksSinceFrightened / 4) & 1;
+					g.SetFrightenedSpriteAnimation(phase, ticksSinceFrightened > ghostFrightenedTicks - 60 && (ticksSinceFrightened & 0x10) != 0);
+					break;
+				case Ghost.Mode.EnterHouse:
+				case Ghost.Mode.Eyes:
+					g.SetEyesSprite();
+					break;
+				default:
+					g.SetDefaultSpriteAnimation();
+					break;
+			}
+		}
+	}
 
 	private FruitType GetFruitTypeFromLevel(int levelNumber)
 	{
@@ -638,24 +640,24 @@ public partial class Game : Node2D
 				return FruitType.Cherries;
 			case 2:
 				return FruitType.Strawberry;
-            case 3:
+			case 3:
 			case 4:
 				return FruitType.Peach;
-            case 5:
-            case 6:
-                return FruitType.Apple;
-            case 7:
-            case 8:
-                return FruitType.Grapes;
-            case 9:
-            case 10:
-                return FruitType.Galaxian;
-            case 11:
-            case 12:
-                return FruitType.Bell;
-            default:
+			case 5:
+			case 6:
+				return FruitType.Apple;
+			case 7:
+			case 8:
+				return FruitType.Grapes;
+			case 9:
+			case 10:
+				return FruitType.Galaxian;
+			case 11:
+			case 12:
+				return FruitType.Bell;
+			default:
 				return FruitType.Key;
-        }
+		}
 	}
 
 	private void UpdateActorsSprites()
@@ -676,21 +678,22 @@ public partial class Game : Node2D
 
 	private void UpdateScore()
 	{
-        scoreText.Text = (score == 0) ? "00" : score.ToString();
+		scoreText.Text = (score == 0) ? "00" : score.ToString();
+		//debugText.Text = (debugmode == 1) ? "PATHS ON" : "PATHS OFF";
 
-        if (score > highScore)
-        {
-            highScore = score;
-        }
+		if (score > highScore)
+		{
+			highScore = score;
+		}
 
-        highScoreText.Text = "HIGH SCORE\n" + ((highScore == 0) ? "00" : highScore.ToString());
-    }
+		highScoreText.Text = "HIGH SCORE\n" + ((highScore == 0) ? "00" : highScore.ToString());
+	}
 
 	/* DEBUG */
 
 	private void DrawGhostsPaths()
 	{
-        Color[] pathColors = new Color[4] { Color.Color8(255, 0, 0, 255), Color.Color8(252, 181, 255, 255), Color.Color8(0, 255, 255, 255), Color.Color8(248, 187, 85, 255) };
+		Color[] pathColors = new Color[4] { Color.Color8(255, 0, 0, 255), Color.Color8(252, 181, 255, 255), Color.Color8(0, 255, 255, 255), Color.Color8(248, 187, 85, 255) };
 		int pathLineWidth = 2;
 
 		for (int i = 0; i < 4; i++)
@@ -713,28 +716,28 @@ public partial class Game : Node2D
 							pathLineSize.X = pathLineWidth;
 							break;
 						case 1:
-                            pathLineSize.X = 8 + pathLineWidth;
-                            break;
+							pathLineSize.X = 8 + pathLineWidth;
+							break;
 						case -1:
-                            pathLineSize.X = -8;
-                            break;
+							pathLineSize.X = -8;
+							break;
 					}
 
-                    switch (pathDirection.Y)
-                    {
-                        case 0:
-                            pathLineSize.Y = pathLineWidth;
-                            break;
-                        case 1:
-                            pathLineSize.Y = 8 + pathLineWidth;
-                            break;
-                        case -1:
-                            pathLineSize.Y = -8;
-                            break;
-                    }
+					switch (pathDirection.Y)
+					{
+						case 0:
+							pathLineSize.Y = pathLineWidth;
+							break;
+						case 1:
+							pathLineSize.Y = 8 + pathLineWidth;
+							break;
+						case -1:
+							pathLineSize.Y = -8;
+							break;
+					}
 
 					DrawRect(new Rect2I(p1 * 8 + new Vector2I(3, 3), pathLineSize), pathColors[i]);
-                }
+				}
 
 				DrawRect(new Rect2I(path[path.Count - 1] * 8 + Vector2I.One * ((8 - pathLineWidth * 2) >> 1), new Vector2I(pathLineWidth, pathLineWidth) * 2), pathColors[i]);
 			}
@@ -752,52 +755,52 @@ public partial class Game : Node2D
 		}
 	}
 
-    // Called when the node enters the scene tree for the first time.
+	// Called when the node enters the scene tree for the first time.
 
-    public override void _Ready()
+	public override void _Ready()
 	{
-        // create triggers
+		// create triggers
 
-        triggers.Add(dotEatenTrigger = new Trigger());
-        triggers.Add(pillEatenTrigger = new Trigger(3));
+		triggers.Add(dotEatenTrigger = new Trigger());
+		triggers.Add(pillEatenTrigger = new Trigger(3));
 		triggers.Add(readyStartedTrigger = new Trigger(Callable.From(() =>
 		{
 			InitRound();
 			roundStartedTrigger.Start(2 * 60);
-        })));
+		})));
 		triggers.Add(roundStartedTrigger = new Trigger(Callable.From(() =>
 		{
 			UnFreeze();
 
 			StopSounds();
 			sirenSound.Play();
-        })));
+		})));
 		triggers.Add(roundWonTrigger = new Trigger(Callable.From(() =>
 		{
-            FreezeBy(FreezeType.Won);
-            readyStartedTrigger.Start(roundWonFreezeTicks);
+			FreezeBy(FreezeType.Won);
+			readyStartedTrigger.Start(roundWonFreezeTicks);
 
 			StopSounds();
-        })));
+		})));
 		triggers.Add(gameOverTrigger = new Trigger(Callable.From(() =>
 		{
 			DisableTriggers();
-            SetFreezeTo(FreezeType.GameOver);
-            StopSounds();
+			SetFreezeTo(FreezeType.GameOver);
+			StopSounds();
 
 			if (score >= highScore)
 			{
-                SaveHighScore();
-            }
+				SaveHighScore();
+			}
 
-            resetTrigger.Start(3 * 60);
+			resetTrigger.Start(3 * 60);
 		})));
 		triggers.Add(resetTrigger = new Trigger(Callable.From(() =>
 		{
 			Reset();
 		})));
 		triggers.Add(fruitActiveTrigger = new Trigger(fruitActiveTicks));
-        triggers.Add(fruitEatenTrigger = new Trigger(2 * 60)); // show fruit score for 2 secs
+		triggers.Add(fruitEatenTrigger = new Trigger(2 * 60)); // show fruit score for 2 secs
 		triggers.Add(pacmanEatenTrigger = new Trigger(pacmanDeathTicks));
 		triggers.Add(ghostEatenUnFreezeTrigger = new Trigger(Callable.From(() =>
 		{
@@ -810,23 +813,23 @@ public partial class Game : Node2D
 			triggers.Add(ghostEatenTrigger[i] = new Trigger(ghostEatenFreezeTicks));
 		}
 
-        // get nodes
+		// get nodes
 
-        scoreText = GetNode<Label>("Score");
+		scoreText = GetNode<Label>("Score");
 		highScoreText = GetNode<Label>("HighScore");
 		mazeSprite = GetNode<Sprite2D>("Maze");
 		ghostDoorSprite = GetNode<ColorRect>("GhostDoor");
 
 		munch1Sound = GetNode<AudioStreamPlayer>("Munch1Sound");
-        munch2Sound = GetNode<AudioStreamPlayer>("Munch2Sound");
+		munch2Sound = GetNode<AudioStreamPlayer>("Munch2Sound");
 		fruitSound = GetNode<AudioStreamPlayer>("FruitSound");
 		ghostEatenSound = GetNode<AudioStreamPlayer>("GhostEatenSound");
 		sirenSound = GetNode<AudioStreamPlayer>("SirenSound");
 		powerPelletSound = GetNode<AudioStreamPlayer>("PowerPelletSound");
 
-        // create pacman
+		// create pacman
 
-        pacman = (Pacman)pacmanScene.Instantiate();
+		pacman = (Pacman)pacmanScene.Instantiate();
 		AddChild(pacman);
 
 		// create ghosts
@@ -848,43 +851,43 @@ public partial class Game : Node2D
 		// reset state & set high score
 
 		LoadHighScore();
-        Reset();
+		Reset();
 
 		// hide mouse cursor
 
 		DisplayServer.MouseSetMode(DisplayServer.MouseMode.Hidden);
-    }
+	}
 
-    // draw (for debug)
+	// draw (for debug)
 
-    public override void _Draw()
+	public override void _Draw()
 	{
 		// draw ghost paths
 
-		// DrawGhostsPaths();
+		DrawGhostsPaths();
 
 		// draw dots and pills
 
 		for (int j = 0; j < Maze.Height; j++)
-        {
-            for (int i = 0; i < Maze.Width; i++)
-            {
-                Rect2 dotRect = new Rect2(new Vector2(i * Maze.TileSize, j * Maze.TileSize), new Vector2(Maze.TileSize, Maze.TileSize));
+		{
+			for (int i = 0; i < Maze.Width; i++)
+			{
+				Rect2 dotRect = new Rect2(new Vector2(i * Maze.TileSize, j * Maze.TileSize), new Vector2(Maze.TileSize, Maze.TileSize));
 
-                switch (Maze.GetTile(new Vector2I(i, j)))
-                {
-                    case Maze.Tile.Dot:
-                        DrawTextureRectRegion(dotsTexture, dotRect, new Rect2(Vector2.Zero, new Vector2(Maze.TileSize, Maze.TileSize)));
-                        break;
-                    case Maze.Tile.Pill:
+				switch (Maze.GetTile(new Vector2I(i, j)))
+				{
+					case Maze.Tile.Dot:
+						DrawTextureRectRegion(dotsTexture, dotRect, new Rect2(Vector2.Zero, new Vector2(Maze.TileSize, Maze.TileSize)));
+						break;
+					case Maze.Tile.Pill:
 						if ((ticks & 8) != 0 || freeze != 0)
 						{
 							DrawTextureRectRegion(dotsTexture, dotRect, new Rect2(new Vector2(Maze.TileSize, 0), new Vector2(Maze.TileSize, Maze.TileSize)));
 						}
-                        break;
-                }
-            }
-        }
+						break;
+				}
+			}
+		}
 
 		// draw ready text
 
@@ -900,18 +903,18 @@ public partial class Game : Node2D
 			DrawTexture(gameOverTextTexture, new Vector2I(73, 131));
 		}
 
-        // maze animation when round won
+		// maze animation when round won
 
-        if (IsFrozenBy(FreezeType.Won))
-        {
+		if (IsFrozenBy(FreezeType.Won))
+		{
 			int ticksSinceWon = roundWonTrigger.TicksSinceStarted();
-            mazeSprite.SelfModulate = (ticksSinceWon & 16) != 0 ? new Color("417ae2") : new Color("ffffff");
-            ghostDoorSprite.Visible = false;
-        }
+			mazeSprite.SelfModulate = (ticksSinceWon & 16) != 0 ? new Color("417ae2") : new Color("ffffff");
+			ghostDoorSprite.Visible = false;
+		}
 
-        // draw lifes
+		// draw lifes
 
-        for (int i = 0; i < numLifes; i++)
+		for (int i = 0; i < numLifes; i++)
 		{
 			DrawTexture(lifeTexture, new Vector2I(16 + 16 * i, 248));
 		}
@@ -930,19 +933,19 @@ public partial class Game : Node2D
 
 		if (fruitActiveTrigger.IsActive())
 		{
-            int fruitIndex = (int)GetFruitTypeFromLevel(level);
-            DrawTextureRectRegion(fruitTexture, new Rect2I(new Vector2I(100, 132), new Vector2I(24, 16)), new Rect2I(new Vector2I(0, fruitIndex * 16), new Vector2I(24, 16)));
+			int fruitIndex = (int)GetFruitTypeFromLevel(level);
+			DrawTextureRectRegion(fruitTexture, new Rect2I(new Vector2I(100, 132), new Vector2I(24, 16)), new Rect2I(new Vector2I(0, fruitIndex * 16), new Vector2I(24, 16)));
 		}
 		else if (fruitEatenTrigger.IsActive())
 		{
-            int fruitIndex = (int)GetFruitTypeFromLevel(level);
-            DrawTextureRectRegion(fruitTexture, new Rect2I(new Vector2I(100, 132), new Vector2I(24, 16)), new Rect2I(new Vector2I(24, fruitIndex * 16), new Vector2I(24, 16)));
-        }
-    }
+			int fruitIndex = (int)GetFruitTypeFromLevel(level);
+			DrawTextureRectRegion(fruitTexture, new Rect2I(new Vector2I(100, 132), new Vector2I(24, 16)), new Rect2I(new Vector2I(24, fruitIndex * 16), new Vector2I(24, 16)));
+		}
+	}
 
-    // runs at 60 fps
+	// runs at 60 fps
 
-    public override void _PhysicsProcess(double delta)
+	public override void _PhysicsProcess(double delta)
 	{
 		// toggle fullscreen
 
@@ -957,27 +960,27 @@ public partial class Game : Node2D
 			else
 			{
 				window.Mode = Window.ModeEnum.Windowed;
-            }
-        }
+			}
+		}
 
-        // reset
+		// reset
 
-        if (Input.IsActionJustPressed("Reset"))
+		if (Input.IsActionJustPressed("Reset"))
 		{
 			Reset();
 		}
 
-        // update triggers
+		// update triggers
 
-        foreach (Trigger t in triggers)
-        {
-            t.Tick(ticks);
-        }
+		foreach (Trigger t in triggers)
+		{
+			t.Tick(ticks);
+		}
 
 		// sound change from power pellet back to siren
 
-        if (powerPelletSound.Playing)
-        {
+		if (powerPelletSound.Playing)
+		{
 			bool changeToSiren = true;
 
 			foreach (Ghost g in ghosts)
@@ -985,42 +988,42 @@ public partial class Game : Node2D
 				if (IsGhostFrightened(g))
 				{
 					changeToSiren = false;
-                    break;
+					break;
 				}
 			}
 
 			if (changeToSiren)
 			{
-                StopSounds();
-                sirenSound.Play();
-            }
-        }
+				StopSounds();
+				sirenSound.Play();
+			}
+		}
 
-        // update actors if the game is not frozen
+		// update actors if the game is not frozen
 
-        if (!IsFrozen())
+		if (!IsFrozen())
 		{
 			UpdateActors();
 		}
 
-        // update score
+		// update score
 
-        UpdateScore();
+		UpdateScore();
 
 		// update sprites
 
-        UpdateActorsSprites();
+		UpdateActorsSprites();
 
 		// debug ghost paths
 
-		// CalculateGhostsPaths();
+		CalculateGhostsPaths();
 
-        // redraw
+		// redraw
 
-        QueueRedraw();
+		QueueRedraw();
 
-        // increment number of ticks
+		// increment number of ticks
 
-        ticks++;
-    }
+		ticks++;
+	}
 }
