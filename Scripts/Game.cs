@@ -89,7 +89,7 @@ public partial class Game : Node2D
 	private int ticks;
 	private int freeze;
 	private int level;
-	private int debugmode; // режим демонстрации пути
+	private int debugmode = 0; // режим демонстрации пути
 	private int score;
 	private int highScore;
 	private int numGhostsEaten;
@@ -679,7 +679,6 @@ public partial class Game : Node2D
 	private void UpdateScore()
 	{
 		scoreText.Text = (score == 0) ? "00" : score.ToString();
-		//debugText.Text = (debugmode == 1) ? "PATHS ON" : "PATHS OFF";
 
 		if (score > highScore)
 		{
@@ -816,6 +815,7 @@ public partial class Game : Node2D
 		// get nodes
 
 		scoreText = GetNode<Label>("Score");
+		debugText = GetNode<Label>("Debug");
 		highScoreText = GetNode<Label>("HighScore");
 		mazeSprite = GetNode<Sprite2D>("Maze");
 		ghostDoorSprite = GetNode<ColorRect>("GhostDoor");
@@ -864,7 +864,15 @@ public partial class Game : Node2D
 	{
 		// draw ghost paths
 
-		DrawGhostsPaths();
+		if (Input.IsKeyPressed(Godot.Key.F1))
+			debugmode = 1;
+		if (Input.IsKeyPressed(Godot.Key.F2))
+			debugmode = 0;
+
+		debugText.Text = (debugmode == 1) ? "DEBUG" : "";
+
+		if (debugmode == 1)
+			DrawGhostsPaths();
 
 		// draw dots and pills
 
@@ -1016,7 +1024,8 @@ public partial class Game : Node2D
 
 		// debug ghost paths
 
-		CalculateGhostsPaths();
+		if (debugmode == 1)
+			CalculateGhostsPaths();
 
 		// redraw
 

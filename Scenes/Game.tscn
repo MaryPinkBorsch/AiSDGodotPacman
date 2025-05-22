@@ -89,6 +89,11 @@ theme_override_constants/line_spacing = -1
 text = "00"
 horizontal_alignment = 2
 
+[node name="Debug" type="Label" parent="."]
+offset_left = 160.0
+offset_top = -23.0
+offset_right = 200.0
+
 [node name="SirenSound" type="AudioStreamPlayer" parent="."]
 stream = ExtResource("6_53ri7")
 
