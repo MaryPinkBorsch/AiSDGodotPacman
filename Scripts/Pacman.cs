@@ -3,11 +3,11 @@ using System;
 
 public partial class Pacman : Actor
 {
-    // eat animation frames
+    // онимация ням
 
     private static readonly int[] animationFramePhase = new int[] { 1, 0, 1, 2 };
 
-    // set start state
+    // выставка в старт позицию
 
     public void SetStartState()
     {
@@ -17,7 +17,7 @@ public partial class Pacman : Actor
         SetStartRoundSprite();
     }
 
-    // get input
+    // считать позицию
 
     private Direction GetInputDirection()
     {
@@ -33,7 +33,7 @@ public partial class Pacman : Actor
         return direction;
     }
 
-    // sprite frame stuff
+    // спраты
 
     public void SetStartRoundSprite()
     {
@@ -59,32 +59,32 @@ public partial class Pacman : Actor
         FrameCoords = new Vector2I(phase, 0);
     }
 
-    // Called when the node enters the scene tree for the first time.
+    //в начале игры выхов
 
     public override void _Ready()
-	{
+    {
         direction = Direction.Left;
-	}
+    }
 
-    // tick
+    //тики
 
     public override void Tick(int ticks)
     {
-        /* Handle movement */
+        // движение
 
         Direction oldDirection = direction;
         direction = GetInputDirection();
 
-        // check if it cant switch directions
+        //проверка можно ли двигаться
 
         if (!CanMove(true))
         {
-            // if not then swap back to the old direction
+            // если нет, то меняем направление на старое
 
             direction = oldDirection;
         }
 
-        // check movement in the current direction
+        // проверка движения в текущем направлении
 
         if (CanMove(true))
         {

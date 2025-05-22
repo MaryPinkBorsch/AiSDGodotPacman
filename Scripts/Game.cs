@@ -6,13 +6,13 @@ public partial class Game : Node2D
 {
 	private enum FreezeType
 	{
-		None	 = 0,
-		Ready	 = (1 << 1),  // новый раунд игры начался	
-		EatGhost = (1 << 2),  // Pacman has eaten a ghost
-		Dead     = (1 << 3),  // Pacman was eaten by a ghost
-		Won		 = (1 << 4),  // round won (all dots eaten)
-		GameOver = (1 << 5),  // round lost and no lifes left
-		Reset    = (1 << 6),  // for freeze the game when reset is called (to avoid update actors in the first tick)
+		None = 0,
+		Ready = (1 << 1),  // новый раунд игры начался	
+		EatGhost = (1 << 2),  // пакман схавал призрака
+		Dead = (1 << 3),  // пакмана съели
+		Won = (1 << 4),  // победа (съели все точки)
+		GameOver = (1 << 5),  // проигрыш
+		Reset = (1 << 6),  //  служебное
 	}
 
 	public enum FruitType
@@ -27,7 +27,7 @@ public partial class Game : Node2D
 		Key
 	}
 
-	// game constants
+	// константы
 
 	private readonly Vector2I fruitTile = new Vector2I(112, 140) / Maze.TileSize;
 
@@ -43,7 +43,7 @@ public partial class Game : Node2D
 	private readonly int roundWonFreezeTicks = 4 * 60;
 	private readonly int fruitActiveTicks = 560;
 
-	// scenes pacman and ghosts
+	// сцены пакмана и призраков
 
 	[Export]
 	private PackedScene pacmanScene;
@@ -70,12 +70,12 @@ public partial class Game : Node2D
 	private Label debugText; // элемент UI показывающий режим (нормальный и режим демонстрации пути)
 	private Label highScoreText;
 	private Sprite2D mazeSprite;
-	private ColorRect ghostDoorSprite; // "sprite"
+	private ColorRect ghostDoorSprite; // спрайты
 
 	private Pacman pacman;
 	private Ghost[] ghosts = new Ghost[4];
 
-	// sounds
+	// звуки
 
 	private AudioStreamPlayer munch1Sound;
 	private AudioStreamPlayer munch2Sound;
@@ -84,7 +84,7 @@ public partial class Game : Node2D
 	private AudioStreamPlayer sirenSound;
 	private AudioStreamPlayer powerPelletSound;
 
-	// game control variables
+	// переменные для управлния
 
 	private int ticks;
 	private int freeze;
@@ -97,7 +97,7 @@ public partial class Game : Node2D
 	private int numDotsEaten;
 	private int numDotsEatenThisRound;
 
-	// triggers
+	// триггеры
 
 	private List<Trigger> triggers = new List<Trigger>();
 	private Trigger dotEatenTrigger;
@@ -118,7 +118,7 @@ public partial class Game : Node2D
 
 	private List<Vector2I>[] ghostsPaths = new List<Vector2I>[4];
 
-	/* LOAD AND SAVE HIGHSCORE */
+	//загрузка макс. очков
 
 	private void LoadHighScore()
 	{
@@ -144,7 +144,7 @@ public partial class Game : Node2D
 		highScoreFile.Close();
 	}
 
-	/* RESET */
+
 
 	private void StopSounds()
 	{
@@ -156,7 +156,7 @@ public partial class Game : Node2D
 	{
 		foreach (Trigger t in triggers)
 		{
-			t.Reset(); // disables the trigger and reset the games ticks of the trigger to 0
+			t.Reset(); // выключение триггеров
 		}
 	}
 
@@ -170,12 +170,12 @@ public partial class Game : Node2D
 
 	private void ResetActors()
 	{
-		// pacman
+		// пакман
 
 		pacman.Visible = true;
 		pacman.SetStartState();
 
-		// ghosts
+		// призраки
 
 		foreach (Ghost g in ghosts)
 		{
@@ -186,7 +186,7 @@ public partial class Game : Node2D
 
 	private void Reset()
 	{
-		// reset some control variables
+		// обнуление переменных управления
 
 		ticks = 0;
 		level = 1;
@@ -199,23 +199,23 @@ public partial class Game : Node2D
 
 		StopSounds();
 
-		// disable triggers & reset actors and maze
+		// выключение триггеров и акторов
 
 		ResetTriggers();
 		ResetActors();
 		Maze.Reset();
 
-		// reset maze color and show door
+		// резет лабиринта
 
 		mazeSprite.SelfModulate = new Color("417ae2");
 		ghostDoorSprite.Visible = true;
 
-		// start ready trigger
+		// подготовка и старт тригерра
 
 		readyStartedTrigger.Start();
 	}
 
-	/* GAME */
+	//сама игра
 
 	private bool IsFrozen()
 	{
@@ -247,23 +247,23 @@ public partial class Game : Node2D
 		freeze &= ~(int)freezeType;
 	}
 
-	// init a new round (ready msg only) this occurs when pacman loses a life or at the start of the game
-
+	// инициировать новый раунд (только сообщение о готовности)
+	// это происходит, когда пакман теряет жизнь или в начале игры
 	private void InitRound()
 	{
-		// disable timers
+		// выкл таймер
 
 		DisableTriggers();
 
-		// reset actors
+		// выкл акторов
 
 		ResetActors();
 
-		// set freeze to ready
+		// зафризить
 
 		SetFreezeTo(FreezeType.Ready);
 
-		// check if the last game has been lost or won
+		// проверка, выигран или проигран предыдущий раунд
 
 		if (numDotsEaten >= Maze.NumDots)
 		{
@@ -276,19 +276,19 @@ public partial class Game : Node2D
 			numLifes--;
 		}
 
-		// reset number of dots eaten this round
+		// резет кол-ва съеденных точек
 
 		numDotsEatenThisRound = 0;
 
-		// reset maze color and show door
+		// резет лабиринта
 
 		mazeSprite.SelfModulate = new Color("417ae2");
 		ghostDoorSprite.Visible = true;
 	}
 
-	/* PACMAN RELATED */
+	// Пакманчик
 
-	// check if pacman should move this tick
+	// проверка надо ли пакману двигаться в этом тике
 
 	private bool PacmanShouldMove()
 	{
@@ -304,9 +304,9 @@ public partial class Game : Node2D
 		return true;
 	}
 
-	/* GHOST RELATED */
+	// Призраки
 
-	// ghost mode
+	// режимы призраков
 
 	private Ghost.Mode GhostScatterChasePhase()
 	{
@@ -319,11 +319,11 @@ public partial class Game : Node2D
 		else if (s < 59 * 60) return Ghost.Mode.Scatter;
 		else if (s < 79 * 60) return Ghost.Mode.Chase;
 		else if (s < 84 * 60) return Ghost.Mode.Scatter;
-		
+
 		return Ghost.Mode.Chase;
 	}
 
-	// update the ghost mode
+	// смена режимов
 
 	private bool GhostLeaveHouse(Ghost g)
 	{
@@ -357,28 +357,28 @@ public partial class Game : Node2D
 		return ghostFrightenedTrigger[(int)g.type].IsActive();
 	}
 
-	/* ACTORS RELATED (BOTH PACMAN AND GHOSTS) */
+	// и пакман и призраки
 
 	private void UpdateDotsEaten()
 	{
 		numDotsEaten++;
 		numDotsEatenThisRound++;
 
-		// check if there are no dots left
+		// проверка на то что все точки сьели
 
 		if (numDotsEaten >= Maze.NumDots)
 		{
 			roundWonTrigger.Start();
 		}
 
-		// spawn fruits
+		// заспавнить фрукты
 
 		if (numDotsEaten == 70 || numDotsEaten == 170)
 		{
 			fruitActiveTrigger.Start();
 		}
 
-		// play munch sound
+		// звук сьеденного фрукта
 
 		if ((numDotsEaten & 1) != 0)
 		{
@@ -392,14 +392,14 @@ public partial class Game : Node2D
 
 	private void UpdateActors()
 	{
-		/* TICK PACMAN */
+		// тик пакмана
 
 		if (PacmanShouldMove())
 		{
 			pacman.Tick(ticks);
 		}
 
-		// Handle dot and pill eating
+		// поедание точек и гигаточек (которые пугают прзраков)
 
 		Vector2I pacmanTile = pacman.PositionToTile();
 		Maze.Tile mazeTile = Maze.GetTile(pacmanTile);
@@ -411,7 +411,7 @@ public partial class Game : Node2D
 				case Maze.Tile.Dot:
 					dotEatenTrigger.Start();
 
-					// increment score and number of dots eaten
+					// плюсуем очки
 
 					score += dotScore;
 
@@ -419,11 +419,11 @@ public partial class Game : Node2D
 				case Maze.Tile.Pill:
 					pillEatenTrigger.Start();
 
-					// reset num of ghost eaten
+					//обнулить число сьеденных призраков
 
 					numGhostsEaten = 0;
 
-					// set ghosts to be in frightened  mode
+					// выставить режим Испуган всем призракам
 
 					foreach (Ghost g in ghosts)
 					{
@@ -433,11 +433,11 @@ public partial class Game : Node2D
 						}
 					}
 
-					// increment score and number of dots eaten
+					// увеличить очки
 
 					score += pillScore;
 
-					// play sound
+					// звуки
 
 					StopSounds();
 					powerPelletSound.Play();
@@ -445,14 +445,14 @@ public partial class Game : Node2D
 					break;
 			}
 
-			// clear tile, increment number of dots and check if there are no dots left
+			// очистить клетку и рповерить сьедены ли все точки
 
 			Maze.SetTile(pacmanTile, Maze.Tile.Empty);
 
 			UpdateDotsEaten();
 		}
 
-		// check if pacman eats fruit
+		// проверка на поедание фрукта
 
 		if (fruitActiveTrigger.IsActive())
 		{
@@ -461,17 +461,17 @@ public partial class Game : Node2D
 				fruitActiveTrigger.Disable();
 				fruitEatenTrigger.Start();
 
-				// score increment
+
 
 				score += fruitScores[(int)GetFruitTypeFromLevel(level)];
 
-				// play sound
+				// звук
 
 				fruitSound.Play();
 			}
 		}
 
-		// check if pacman eats a ghost (or viceversa)
+		// проверка если сьели призрака (или наоборот)
 
 		foreach (Ghost g in ghosts)
 		{
@@ -479,72 +479,72 @@ public partial class Game : Node2D
 			{
 				if (g.mode == Ghost.Mode.Frightened)
 				{
-					// ghost has been eaten
+					//съели призрака
 
-					// freeze the game
+					//режим фриз
 
 					FreezeBy(FreezeType.EatGhost);
 
-					// swap ghost mode to eyes
+					// режим глаза
 
 					g.mode = Ghost.Mode.Eyes;
 
-					// disable frightened trigger
+					// вырубить триггре
 
 					ghostFrightenedTrigger[(int)g.type].Disable();
 
-					// start ghost eaten and eaten trigger
+					// триггер сьеденного призрака
 
 					ghostEatenUnFreezeTrigger.Start(ghostEatenFreezeTicks);
 					ghostEatenTrigger[(int)g.type].Start();
 
-					// increment the score
+					// очки++
 
 					score += ghostEatenScores[numGhostsEaten];
 
-					// increment the number of ghosts eaten by one
+					// увеличить кол-во сьеденных призраков
 
 					numGhostsEaten++;
 
-					// play sound
+
 
 					ghostEatenSound.Play();
 				}
 				else if (g.mode == Ghost.Mode.Chase || g.mode == Ghost.Mode.Scatter)
 				{
-					// pacman has been eaten
+					// если сьели пакмана
 
-					// freeze the game
+					// фриз
 
 					FreezeBy(FreezeType.Dead);
 
-					// start pacman eaten trigger
+					// триггер сьеденного пакмана
 
 					pacmanEatenTrigger.Start(pacmanEatenFreezeTicks);
 
-					// check number of lifes
+					// проверка на число жизней
 
 					if (numLifes >= 1)
 					{
-						// start readystarted trigger after (pacmanEatenFreezeTicks + pacmanDeathTicks) ticks
+						// перезапуск раунда
 
 						readyStartedTrigger.Start(pacmanEatenFreezeTicks + pacmanDeathTicks);
 					}
 					else
 					{
-						// game over
+						// конец игры
 
 						gameOverTrigger.Start(pacmanEatenFreezeTicks + pacmanDeathTicks);
 					}
 
-					// stop sounds
+					// вырубить звук
 
 					StopSounds();
 				}
 			}
 		}
 
-		/* TICK GHOSTS */
+		//тики призраков
 
 		foreach (Ghost g in ghosts)
 		{
@@ -588,7 +588,7 @@ public partial class Game : Node2D
 
 	private void UpdateGhostSprite(Ghost g)
 	{
-		// check if it has just been eaten
+		// если сьели призрака
 
 		if (ghostEatenTrigger[(int)g.type].IsActive())
 		{
@@ -612,7 +612,7 @@ public partial class Game : Node2D
 		{
 			g.Visible = true;
 
-			// choose the sprite and animation to show
+			// выбор анимации
 
 			switch (g.mode)
 			{
@@ -662,11 +662,11 @@ public partial class Game : Node2D
 
 	private void UpdateActorsSprites()
 	{
-		// pacman
+		// пакман
 
 		UpdatePacmanSprite();
 
-		// ghosts
+		// призраки
 
 		foreach (Ghost g in ghosts)
 		{
@@ -674,7 +674,7 @@ public partial class Game : Node2D
 		}
 	}
 
-	// score update display
+	// обновление очков
 
 	private void UpdateScore()
 	{
@@ -688,7 +688,7 @@ public partial class Game : Node2D
 		highScoreText.Text = "HIGH SCORE\n" + ((highScore == 0) ? "00" : highScore.ToString());
 	}
 
-	/* DEBUG */
+	//дебаг
 
 	private void DrawGhostsPaths()
 	{
@@ -754,11 +754,10 @@ public partial class Game : Node2D
 		}
 	}
 
-	// Called when the node enters the scene tree for the first time.
-
+	// Вызывается, когда узел впервые попадает в дерево сцены
 	public override void _Ready()
 	{
-		// create triggers
+		// создание триггеров
 
 		triggers.Add(dotEatenTrigger = new Trigger());
 		triggers.Add(pillEatenTrigger = new Trigger(3));
@@ -812,7 +811,7 @@ public partial class Game : Node2D
 			triggers.Add(ghostEatenTrigger[i] = new Trigger(ghostEatenFreezeTicks));
 		}
 
-		// get nodes
+		// получение узлов
 
 		scoreText = GetNode<Label>("Score");
 		debugText = GetNode<Label>("Debug");
@@ -827,12 +826,12 @@ public partial class Game : Node2D
 		sirenSound = GetNode<AudioStreamPlayer>("SirenSound");
 		powerPelletSound = GetNode<AudioStreamPlayer>("PowerPelletSound");
 
-		// create pacman
+		// создатьб пакмана
 
 		pacman = (Pacman)pacmanScene.Instantiate();
 		AddChild(pacman);
 
-		// create ghosts
+		// создатьб призраков
 
 		for (int i = 0; i < 4; i++)
 		{
@@ -841,28 +840,28 @@ public partial class Game : Node2D
 			AddChild(ghosts[i]);
 		}
 
-		// ghost paths
+		// пути
 
 		for (int i = 0; i < 4; i++)
 		{
 			ghostsPaths[i] = new List<Vector2I>();
 		}
 
-		// reset state & set high score
+		// очки
 
 		LoadHighScore();
 		Reset();
 
-		// hide mouse cursor
+		//спрятать курсор мышы
 
 		DisplayServer.MouseSetMode(DisplayServer.MouseMode.Hidden);
 	}
 
-	// draw (for debug)
+	// рисование путей
 
 	public override void _Draw()
 	{
-		// draw ghost paths
+		// пути
 
 		if (Input.IsKeyPressed(Godot.Key.F1))
 			debugmode = 1;
@@ -874,7 +873,7 @@ public partial class Game : Node2D
 		if (debugmode == 1)
 			DrawGhostsPaths();
 
-		// draw dots and pills
+		// нарисоавть точки и гигаточки
 
 		for (int j = 0; j < Maze.Height; j++)
 		{
@@ -897,21 +896,21 @@ public partial class Game : Node2D
 			}
 		}
 
-		// draw ready text
+		// текст нарисовать
 
 		if (IsFrozenBy(FreezeType.Ready))
 		{
 			DrawTexture(readyTextTexture, new Vector2I(89, 131));
 		}
 
-		// draw game over text
+		// нарисовать гейм овер текст
 
 		if (IsFrozenBy(FreezeType.GameOver))
 		{
 			DrawTexture(gameOverTextTexture, new Vector2I(73, 131));
 		}
 
-		// maze animation when round won
+		// анимация победы
 
 		if (IsFrozenBy(FreezeType.Won))
 		{
@@ -920,14 +919,14 @@ public partial class Game : Node2D
 			ghostDoorSprite.Visible = false;
 		}
 
-		// draw lifes
+		// нарисовать жизни
 
 		for (int i = 0; i < numLifes; i++)
 		{
 			DrawTexture(lifeTexture, new Vector2I(16 + 16 * i, 248));
 		}
 
-		// draw the fruits that represent the level number
+		// рисовка фруктов отображающих уровень
 
 		int levelStart = level - 7 > 0 ? level - 7 : 0;
 
@@ -937,7 +936,7 @@ public partial class Game : Node2D
 			DrawTextureRectRegion(fruitTexture, new Rect2I(new Vector2I(188 - 16 * (i - levelStart), 248), new Vector2I(24, 16)), new Rect2I(new Vector2I(0, fruitIndex * 16), new Vector2I(24, 16)));
 		}
 
-		// draw fruit
+		// рисовка фруктов 
 
 		if (fruitActiveTrigger.IsActive())
 		{
@@ -951,11 +950,11 @@ public partial class Game : Node2D
 		}
 	}
 
-	// runs at 60 fps
+	// 60 фпс
 
 	public override void _PhysicsProcess(double delta)
 	{
-		// toggle fullscreen
+		// фулл экран
 
 		if (Input.IsActionJustPressed("ToggleFullscreen"))
 		{
@@ -971,21 +970,21 @@ public partial class Game : Node2D
 			}
 		}
 
-		// reset
+
 
 		if (Input.IsActionJustPressed("Reset"))
 		{
 			Reset();
 		}
 
-		// update triggers
+		// обновить триггеры
 
 		foreach (Trigger t in triggers)
 		{
 			t.Tick(ticks);
 		}
 
-		// sound change from power pellet back to siren
+		// смена звука
 
 		if (powerPelletSound.Playing)
 		{
@@ -1007,31 +1006,31 @@ public partial class Game : Node2D
 			}
 		}
 
-		// update actors if the game is not frozen
+		// обновить акторов
 
 		if (!IsFrozen())
 		{
 			UpdateActors();
 		}
 
-		// update score
+		// обновитьо чки
 
 		UpdateScore();
 
-		// update sprites
+		// обновить спрайты
 
 		UpdateActorsSprites();
 
-		// debug ghost paths
+		// дебаг
 
 		if (debugmode == 1)
 			CalculateGhostsPaths();
 
-		// redraw
+		// редрав
 
 		QueueRedraw();
 
-		// increment number of ticks
+		// увеличить тики
 
 		ticks++;
 	}

@@ -1,6 +1,6 @@
 using Godot;
 using System;
-using System.Collections.Generic; 
+using System.Collections.Generic;
 
 public partial class Ghost : Actor
 {
@@ -13,7 +13,7 @@ public partial class Ghost : Actor
 	}
 
 	public enum Mode // енам для разных "режимов  работы призраков" - погоня, побег,
-	// когда испуган, только глаза, когда он заперт в доме, когда выходит/заходит в дом
+					 // когда испуган, только глаза, когда он заперт в доме, когда выходит/заходит в дом
 	{
 		Chase,
 		Scatter,
@@ -67,12 +67,12 @@ public partial class Ghost : Actor
 
 	public void SetStartState()
 	{
-		// set start position
+		//начальная позиция
 
 		Position = startPositions[(int)type];
 		animationTick = 0;
 
-		// set start mode
+		// нач режим
 
 		switch (type)
 		{
@@ -101,11 +101,10 @@ public partial class Ghost : Actor
 		return scatterTiles[(int)type];
 	}
 
-	// get ghost chase tile, it needs to know pacman's position, also inky uses blinky position
-	// to determine his target tile, so we need to pass an array with all the ghosts too
+	// получаем плитку погони за призраком, ему нужно знать позицию Пакмана, также Инки использует позицию блинки
+	// чтобы определить свою целевую плитку, поэтому нам нужно передать массив со всеми призраками
 
-
-	// С ЭТИМ НАДО РАЗОБРАТЬСЯ!!!!!!!!!!!!!!!!
+	// важная часть! (добав а*)
 	public Vector2I GetChaseTile(Pacman pacman, Ghost[] ghosts) //то куда бегут призраки когда преследуют Пакмана
 	{
 		Vector2I pacmanDirectionVector = pacman.GetDirectionVector();
@@ -178,14 +177,14 @@ public partial class Ghost : Actor
 	}
 
 	/*
-	 * get the next direction the ghost should continue if it returns true the direction is forced,
-	 * that means that the ghost should continue with that direction even if encounters a wall going through it
-	 * this is needed when crossing the ghost door
-	 */
+* получить следующее направление, в котором призрак должен продолжить движение, если возвращается true, направление принудительное,
+* это означает, что призрак должен продолжить движение в этом направлении, даже если столкнется со стеной, проходящей через него
+* это необходимо при пересечении двери призрака
+*/
 
 	private bool GetNextDirection()
 	{
-		// check if the ghost is in the house or entering or leaving from it
+		// проверить, находится ли призрак в доме или входит или выходит из него
 
 		Vector2I pos = (Vector2I)Position;
 
@@ -203,11 +202,11 @@ public partial class Ghost : Actor
 
 				direction = nextDirection;
 
-				// force movement
+
 				return true;
 			case Mode.LeaveHouse:
 
-				// if it is in front of the door
+				// если он перед дверью
 
 				if (pos.X == 112)
 				{
@@ -218,7 +217,7 @@ public partial class Ghost : Actor
 				}
 				else
 				{
-					// if not in front of the door then first go to Y = 116
+					// если не перед дверью, то сначала идем к Y = 116
 
 					if (pos.Y < 116)
 					{
@@ -230,7 +229,7 @@ public partial class Ghost : Actor
 					}
 					else
 					{
-						// if it is already on Y = 116 then go to door x = 112
+						// если он уже на Y = 116, то переходим к двери x = 112
 
 						nextDirection = (pos.X < 112) ? Direction.Right : Direction.Left;
 					}
@@ -241,7 +240,7 @@ public partial class Ghost : Actor
 				return true;
 			case Mode.EnterHouse:
 
-				// if is not at the door go there first
+				// идем к двери
 
 				if (pos.X != 112 && pos.Y < 116)
 				{
@@ -249,7 +248,7 @@ public partial class Ghost : Actor
 				}
 				else
 				{
-					// once at the door go down
+					// от двери вниз
 
 					if (pos.Y < 116)
 					{
@@ -257,7 +256,7 @@ public partial class Ghost : Actor
 					}
 					else
 					{
-						// if already is in the middle of the house go to its house position
+						// домой
 
 						nextDirection = pos.X < housePositions[(int)type].X ? Direction.Right : Direction.Left;
 					}
@@ -268,11 +267,11 @@ public partial class Ghost : Actor
 				return true;
 		}
 
-		// if it is in chase scatter or frightened mode
+		// если он находится в режиме преследования, разбегания или испуга
 
 		Vector2I distanceToTileMid = DistanceToTileMid();
 
-		if (distanceToTileMid.X == 0 && distanceToTileMid.Y == 0) // only compute next direction if it is in the middle of the tile
+		if (distanceToTileMid.X == 0 && distanceToTileMid.Y == 0) // вычисляем следующее направление только если он находится в середине плитки
 		{
 			direction = nextDirection;
 			Vector2I lookAheadTile = PositionToTile() + GetDirectionVector();
@@ -284,14 +283,14 @@ public partial class Ghost : Actor
 				neightbourTiles[i] += lookAheadTile;
 			}
 
-			// for each possible intersection tile check the distance to the target tile
+			// для каждой возможной плитки пересечения проверка расстояние до целевой плитки
 
 			int lowestDistance = int.MaxValue;
 			Direction[] testDirections = new Direction[] { Direction.Up, Direction.Left, Direction.Down, Direction.Right }; // the ghost prefers directions in this order
 
 			foreach (Direction d in testDirections)
 			{
-				// in red zones you cant go upwards (unless the ghost is in frightened mode)
+				//если призрак не испуган то нельзя в красн зону
 
 				if (mode != Mode.Frightened)
 				{
@@ -301,7 +300,7 @@ public partial class Ghost : Actor
 					}
 				}
 
-				// you cant go reverse
+				// нельзя в обр направлении идти
 
 				if (d != GetReverseDirection(direction) && Maze.GetTile(neightbourTiles[(int)d]) != Maze.Tile.Wall)
 				{
@@ -319,7 +318,7 @@ public partial class Ghost : Actor
 		return false;
 	}
 
-	// update ghost mode
+	// обнов режим
 
 	public void UpdateGhostMode(LeaveHouseCallback leaveHouse, IsFrightenedCallback isFrightened, ScatterChasePhaseCallback scatterChasePhase)
 	{
@@ -335,7 +334,7 @@ public partial class Ghost : Actor
 				}
 				break;
 			case Mode.LeaveHouse:
-				// ghosts immediately switch to scatter mode after leaving the ghost house
+				// призраки немедленно переключаются в режим разбегания после того, как покидают дом призраков
 
 				if (pos.Y == 92)
 				{
@@ -343,7 +342,7 @@ public partial class Ghost : Actor
 				}
 				break;
 			case Mode.EnterHouse:
-				// check if the ghost is inside the house
+				// проверить, находится ли привидение внутри дома
 				Vector2I housePosition = GetHousePosition();
 
 				if (IsNearEqual(housePosition, 1))
@@ -359,7 +358,7 @@ public partial class Ghost : Actor
 				}
 				break;
 			default:
-				// check if the ghost should be in frightened state
+				// проверить, должно ли привидение быть в испуганном состоянии
 
 				if (isFrightened(this))
 				{
@@ -367,7 +366,7 @@ public partial class Ghost : Actor
 				}
 				else
 				{
-					// if not alternate between chase and scatter
+					// если нет, череда погоню и разброс
 
 					newMode = scatterChasePhase();
 				}
@@ -375,14 +374,13 @@ public partial class Ghost : Actor
 				break;
 		}
 
-		// if the new state is different from the previous one handle transitions between states
-
+		// если новое состояние отличается от предыдущего, обработать переходы между состояниями
 		if (newMode != mode)
 		{
 			switch (mode)
 			{
 				case Mode.LeaveHouse:
-					// after leaving the ghost house, head to the left
+					// из дома налево
 					nextDirection = direction = Direction.Left;
 					break;
 				case Mode.EnterHouse:
@@ -390,7 +388,7 @@ public partial class Ghost : Actor
 					break;
 				case Mode.Scatter:
 				case Mode.Chase:
-					// any transition from scatter and chase mode causes a reversal of direction
+					// любой переход из режима разбегания в режим погони приводит к изменению направления
 
 					nextDirection = GetReverseDirection(direction);
 					break;
@@ -400,7 +398,7 @@ public partial class Ghost : Actor
 		}
 	}
 
-	// gets the number of pixels the ghost should move
+	// получает количество пикселей, на которое должен переместиться призрак
 
 	private int GetSpeed(int ticks)
 	{
@@ -416,7 +414,7 @@ public partial class Ghost : Actor
 				return 2;
 		}
 
-		// check if it the ghost is in the tunnel 
+		//чек позиуции
 
 		Vector2I tile = PositionToTile();
 
@@ -425,12 +423,12 @@ public partial class Ghost : Actor
 			return ticks & 1;
 		}
 
-		// move a little slower than pacman
+		//движение чуть медленне пакмана
 
 		return (ticks % 20) != 0 ? 1 : 0;
 	}
 
-	// set sprites
+	// спрайты
 
 	public void SetDefaultSpriteAnimation()
 	{
@@ -453,9 +451,8 @@ public partial class Ghost : Actor
 		FrameCoords = new Vector2I(8 + (int)nextDirection, 1);
 	}
 
-	/* DEBUG */
 
-	// get ghost path
+	// получить путь
 
 	public void GetCurrentPath(List<Vector2I> path, int maxDepth)
 	{
@@ -476,16 +473,14 @@ public partial class Ghost : Actor
 				neightbourTiles[i] += currentTile;
 			}
 
-			// for each possible intersection tile check the distance to the target tile
-
+			// для каждой возможной плитки пересечения провеит расстояние до целевой плитки
 			int lowestDistance = int.MaxValue;
 			Direction[] testDirections = new Direction[] { Direction.Up, Direction.Left, Direction.Down, Direction.Right }; // the ghost prefers directions in this order
 			Direction chosenNextDirection = Direction.Left;
 
 			foreach (Direction d in testDirections)
 			{
-				// in red zones you cant go upwards (unless the ghost is in frightened mode)
-
+				// в красных зонах нельязя идти вверх (если только призрак не находится в состоянии испуга)
 				if (mode != Mode.Frightened)
 				{
 					if (d == Direction.Up && Maze.IsRedZone(currentTile))
@@ -494,7 +489,7 @@ public partial class Ghost : Actor
 					}
 				}
 
-				// you cant go reverse
+				// назад идти нельзя
 
 				if (d != GetReverseDirection(currentDirection) && Maze.GetTile(neightbourTiles[(int)d]) != Maze.Tile.Wall)
 				{
@@ -515,28 +510,27 @@ public partial class Ghost : Actor
 		} while (currentTile != targetTile && currentTile != PositionToTile() && path.Count < maxDepth);
 	}
 
-	// Called when the node enters the scene tree for the first time.
+	// при начале игры
 
 	public override void _Ready()
 	{
 		mode = Mode.Chase;
 	}
 
-	// tick
-
+	// тики
 	public override void Tick(int ticks)
 	{
-		// move the ghost
+		// движение рпизрака
 
 		int numPixelsToMove = GetSpeed(ticks);
 
 		for (int i = 0; i < numPixelsToMove; i++)
 		{
-			// calculate next direction (only when in midpoint of the tile)
+			// рассчитать следующее направление (только в середине плитки)
 
 			bool forcedMove = GetNextDirection();
 
-			// move along the direction
+			// идти по направлениеию
 
 			if (CanMove(false) || forcedMove)
 			{

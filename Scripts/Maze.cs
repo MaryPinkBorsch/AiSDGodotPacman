@@ -8,7 +8,7 @@ public static class Maze
         Empty = ' ', Wall = 'X', Tunnel = '=', Dot = '.', Pill = 'o'
     }
 
-    // maze dimensions
+    // характерикисти лабиринта
 
     public static readonly int Width = 28;
     public static readonly int Height = 31;
@@ -18,7 +18,7 @@ public static class Maze
 
     private static Tile[] maze = new Tile[Width * Height];
 
-    // maze template
+    // шаблон
 
     private static readonly string[] mazeTemplate = new string[] {
         "XXXXXXXXXXXXXXXXXXXXXXXXXXXX",
@@ -54,7 +54,7 @@ public static class Maze
         "XXXXXXXXXXXXXXXXXXXXXXXXXXXX"
     };
 
-    // redo maze from maze template
+    // с шаблона лабиринт поставить
 
     public static void Reset()
     {
@@ -67,7 +67,7 @@ public static class Maze
         }
     }
 
-    // set and get tiles from the maze
+    // выставить клетки
 
     public static Tile GetTile(Vector2I tilePosition)
     {
@@ -80,7 +80,7 @@ public static class Maze
         maze[tilePosition.X + tilePosition.Y * Width] = tile;
     }
 
-    // check if a tile is in red zone
+    // проверка на красную зону
 
     public static bool IsRedZone(Vector2I tile)
     {

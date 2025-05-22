@@ -5,14 +5,14 @@ public class Trigger
 {
     private static readonly int disabledTicks = int.MaxValue;
 
-	private int gameTicks;
-	private int triggerTicks;
-	private int durationTicks;
+    private int gameTicks;
+    private int triggerTicks;
+    private int durationTicks;
 
     private bool disabled;
     private bool hasCallback;
 
-	private Callable callback;
+    private Callable callback;
 
     public Trigger()
     {
@@ -28,9 +28,9 @@ public class Trigger
         hasCallback = false;
     }
 
-	public Trigger(Callable callback) : this(1, callback)
-	{
-	}
+    public Trigger(Callable callback) : this(1, callback)
+    {
+    }
 
     public Trigger(int duration, Callable callback)
     {
@@ -81,24 +81,24 @@ public class Trigger
         }
     }
 
-    // must be called every frame to be synced with the game ticks
+    // необходимо вызывать каждый кадр для синхронизации с игровыми тиками
 
-	public void Tick(int ticks)
-	{
-        // set the new ticks
+    public void Tick(int ticks)
+    {
+        // устанавливаем новые тики
 
-		gameTicks = ticks;
+        gameTicks = ticks;
 
-        // if the trigger is not disabled then check
+       // если триггер не отключен, то проверяем
 
         if (!disabled && hasCallback)
         {
-            //  check if the event has just started
+            // проверяем, началось ли событие только что
 
             if (triggerTicks == gameTicks)
             {
                 callback.Call();
             }
         }
-	}
+    }
 }

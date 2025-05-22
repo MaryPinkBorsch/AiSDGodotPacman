@@ -13,20 +13,20 @@ public abstract partial class Actor : Sprite2D
 
     protected static readonly Vector2I[] directionsMap = new Vector2I[]
     {
-        new Vector2I(1, 0), new Vector2I(-1, 0), new Vector2I(0, -1), new Vector2I(0, 1) 
+        new Vector2I(1, 0), new Vector2I(-1, 0), new Vector2I(0, -1), new Vector2I(0, 1)
     };
 
     public Direction direction;
     protected int animationTick;
 
-    // gets the tile the actor is in
+    // получить квадратик где сейчас актор
 
     public Vector2I PositionToTile()
     {
         return (Vector2I)Position / Maze.TileSize;
     }
 
-    // gets a vector2i direction from the enum direction
+    // получает направление vector2i из енама направления 
 
     public Vector2I GetDirectionVector()
     {
@@ -40,16 +40,14 @@ public abstract partial class Actor : Sprite2D
         return new Vector2I(Maze.TileSize / 2, Maze.TileSize / 2) - ((Vector2I)Position % Maze.TileSize);
     }
 
-    // check if the actor is near a certain position with a tolerance factor
-
+    // проверка находится ли актер вблизи определенной позиции с коэффициентом допуска
     public bool IsNearEqual(Vector2I p, int tolerance)
     {
         Vector2I pos = (Vector2I)Position;
         return (Mathf.Abs(pos.X - p.X) <= tolerance) && (Mathf.Abs(pos.Y - p.Y) <= tolerance);
     }
 
-    // checks if the actor can move in a direction and if is cornering allowed for that actor
-
+    // проверяет, может ли актер двигаться в определенном направлении и разрешено ли ему поворачивать
     protected bool CanMove(bool allowCornering)
     {
         Vector2I directionVector = GetDirectionVector();
@@ -80,8 +78,7 @@ public abstract partial class Actor : Sprite2D
         return true;
     }
 
-    // gets the next position of the move (it doesnt check for blocked tiles)
-
+    // получает следующую позицию хода (без проверки на  наличие заблокированных плиток)
     protected void Move(bool allowCornering)
     {
         Vector2I directionVector = GetDirectionVector();
@@ -104,7 +101,7 @@ public abstract partial class Actor : Sprite2D
             }
         }
 
-        // wrap position around
+        // оборот прохода (та прикольная дырка)
 
         if (pos.X < 0)
         {
@@ -118,7 +115,7 @@ public abstract partial class Actor : Sprite2D
         Position = pos;
     }
 
-    // tick (must be overriden)
+    // переопределение тика
 
     public abstract void Tick(int ticks);
 }
