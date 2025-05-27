@@ -74,6 +74,13 @@ public static class Maze
         tilePosition = tilePosition.Clamp(Vector2I.Zero, new Vector2I(Width - 1, Height - 1));
         return maze[tilePosition.X + tilePosition.Y * Width];
     }
+    public static bool IsTileTraversable(Vector2I tilePosition)
+    {
+        var tile = GetTile(tilePosition);
+        if (tile == Tile.Wall)
+            return false;
+        return true;
+    }
 
     public static void SetTile(Vector2I tilePosition, Tile tile)
     {

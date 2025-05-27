@@ -749,7 +749,8 @@ public partial class Game : Node2D
 		{
 			if (ghosts[i].DistanceToTileMid() == Vector2I.Zero)
 			{
-				ghosts[i].GetCurrentPath(ghostsPaths[i], 17);
+				//ghosts[i].GetCurrentPath(ghostsPaths[i], 17);
+				ghosts[i].GetCurrentPathAStar(ghostsPaths[i], pacman.PositionToTile());
 			}
 		}
 	}

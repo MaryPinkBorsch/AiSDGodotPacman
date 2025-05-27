@@ -1,6 +1,7 @@
 using Godot;
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 
 public partial class Ghost : Actor
 {
@@ -77,7 +78,7 @@ public partial class Ghost : Actor
 		switch (type)
 		{
 			case Type.Blinky:
-				mode = Mode.Scatter;
+				mode = Mode.Chase;
 				nextDirection = direction = Direction.Left;
 				break;
 			case Type.Pinky:
@@ -113,7 +114,11 @@ public partial class Ghost : Actor
 		switch (type)
 		{
 			case Type.Blinky:
-				return pacmanTile;
+				{
+					//return pacmanTile;
+					var blinkyPath = AStarPathfinder.FindPath(PositionToTile(), pacmanTile, Maze.IsTileTraversable, Maze.Width, Maze.Height);
+					return blinkyPath[0]; // возвращаем первый шаг из пути построенного А*
+				}
 			case Type.Pinky:
 				if (pacmanDirectionVector.Y < 0)
 				{
@@ -156,23 +161,28 @@ public partial class Ghost : Actor
 
 	public void UpdateTargetTile(Pacman pacman, Ghost[] ghosts)
 	{
-		switch (mode)
+		if (type == Type.Blinky && mode != Mode.Eyes)
+			targetTile = GetChaseTile(pacman, ghosts);
+		else
 		{
-			case Mode.Chase:
-				targetTile = GetChaseTile(pacman, ghosts);
-				break;
-			case Mode.Scatter:
-				targetTile = scatterTiles[(int)type];
-				break;
-			case Mode.Frightened:
-				targetTile = new Vector2I(rand.Next(Maze.Width), rand.Next(Maze.Height));
-				break;
-			case Mode.Eyes:
-				targetTile = new Vector2I(13, 11);
-				break;
-			default:
-				targetTile = Vector2I.Zero;
-				break;
+			switch (mode)
+			{
+				case Mode.Chase:
+					targetTile = GetChaseTile(pacman, ghosts);
+					break;
+				case Mode.Scatter:
+					targetTile = scatterTiles[(int)type];
+					break;
+				case Mode.Frightened:
+					targetTile = new Vector2I(rand.Next(Maze.Width), rand.Next(Maze.Height));
+					break;
+				case Mode.Eyes:
+					targetTile = new Vector2I(13, 11);
+					break;
+				default:
+					targetTile = Vector2I.Zero;
+					break;
+			}
 		}
 	}
 
@@ -402,7 +412,6 @@ public partial class Ghost : Actor
 
 	private int GetSpeed(int ticks)
 	{
-		return (ticks % 3) == 0 ? 1 : 0; // это выставляет скорость передвижения призраков (чем выше число, тем медленнее призраки)
 		switch (mode) //если хочется хардкор с разной (ВЫСОКОЙ) скоростью, то можно закомментить надпись выше и призраки станут очень быстрыми
 		{
 			case Mode.InHouse:
@@ -413,6 +422,7 @@ public partial class Ghost : Actor
 			case Mode.Eyes:
 				return 2;
 		}
+		return (ticks % 3) == 0 ? 1 : 0; // это выставляет скорость передвижения призраков (чем выше число, тем медленнее призраки)
 
 		//чек позиуции
 
@@ -451,9 +461,27 @@ public partial class Ghost : Actor
 		FrameCoords = new Vector2I(8 + (int)nextDirection, 1);
 	}
 
+	// получить путь с помощью А*
+	public void GetCurrentPathAStar(List<Vector2I> path, Vector2I pacmanposition)
+	{
+		path.Clear();
 
-	// получить путь
+		if (mode != Mode.Chase && mode != Mode.Scatter && mode != Mode.Eyes)
+			return;
 
+		Vector2I start = PositionToTile();
+
+		var goal = pacmanposition;
+
+		var res = AStarPathfinder.FindPath(start, goal, Maze.IsTileTraversable, Maze.Width, Maze.Height);
+		foreach (var step in res)
+		{
+			path.Add(step);
+		}
+
+	}
+
+	// получить путь классическим образом
 	public void GetCurrentPath(List<Vector2I> path, int maxDepth)
 	{
 		path.Clear();
@@ -473,7 +501,7 @@ public partial class Ghost : Actor
 				neightbourTiles[i] += currentTile;
 			}
 
-			// для каждой возможной плитки пересечения провеит расстояние до целевой плитки
+			// для каждой возможной плитки пересечения проверить расстояние до целевой плитки
 			int lowestDistance = int.MaxValue;
 			Direction[] testDirections = new Direction[] { Direction.Up, Direction.Left, Direction.Down, Direction.Right }; // the ghost prefers directions in this order
 			Direction chosenNextDirection = Direction.Left;

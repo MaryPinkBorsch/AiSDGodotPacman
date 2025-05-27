@@ -19,6 +19,11 @@ public partial class Pacman : Actor
 
     // считать позицию
 
+    public Vector2I GetPacmanPosition()
+    {
+        return (Vector2I)Position;
+    }
+
     private Direction GetInputDirection()
     {
         if (Input.IsActionPressed("Right"))
