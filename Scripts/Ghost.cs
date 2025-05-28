@@ -477,6 +477,8 @@ public partial class Ghost : Actor
 	public void GetCurrentPathAStar(List<Vector2I> path, Vector2I pacmanposition)
 	{
 		path.Clear();
+		// дебажная отрисовка только для блинки, т.к. только он ходит по А* 
+		// (остальные ходят по дикой логике из пакмана)
 		if (type != Type.Blinky)
 			return;
 
