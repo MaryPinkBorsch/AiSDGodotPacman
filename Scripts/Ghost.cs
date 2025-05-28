@@ -115,9 +115,18 @@ public partial class Ghost : Actor
 		{
 			case Type.Blinky:
 				{
-					//return pacmanTile;
+					// изначально возвращался первый элемент пути по А*, но это вызывало баги
+					// из-за близости с координатами приведения Блинки
+					// после долгих мучений было решено брать целью третью клетку из пути (если таковая есть)
 					var blinkyPath = AStarPathfinder.FindPath(PositionToTile(), pacmanTile, Maze.IsTileTraversable, Maze.Width, Maze.Height);
-					return blinkyPath[0]; // возвращаем первый шаг из пути построенного А*
+					if (blinkyPath != null && blinkyPath.Count > 2)
+						return blinkyPath[2]; // возвращаем третий шаг из пути построенного А*
+					else if (blinkyPath != null && blinkyPath.Count > 1)
+						return blinkyPath[1]; // возвращаем второй шаг из пути построенного А*
+					else if (blinkyPath != null && blinkyPath.Count == 1)
+						return blinkyPath[0]; // возвращаем первый шаг из пути построенного А*
+					else
+						return pacmanTile;
 				}
 			case Type.Pinky:
 				if (pacmanDirectionVector.Y < 0)
@@ -273,7 +282,6 @@ public partial class Ghost : Actor
 				}
 
 				direction = nextDirection;
-
 				return true;
 		}
 
@@ -300,8 +308,8 @@ public partial class Ghost : Actor
 
 			foreach (Direction d in testDirections)
 			{
-				//если призрак не испуган то нельзя в красн зону
 
+				//если призрак не испуган то нельзя в красн зону
 				if (mode != Mode.Frightened)
 				{
 					if (d == Direction.Up && Maze.IsRedZone(lookAheadTile))
@@ -311,11 +319,9 @@ public partial class Ghost : Actor
 				}
 
 				// нельзя в обр направлении идти
-
 				if (d != GetReverseDirection(direction) && Maze.GetTile(neightbourTiles[(int)d]) != Maze.Tile.Wall)
 				{
 					int distanceToTarget = (targetTile - neightbourTiles[(int)d]).LengthSquared();
-
 					if (distanceToTarget < lowestDistance)
 					{
 						lowestDistance = distanceToTarget;
@@ -378,7 +384,12 @@ public partial class Ghost : Actor
 				{
 					// если нет, череда погоню и разброс
 
-					newMode = scatterChasePhase();
+					if (type != Type.Blinky)
+						newMode = scatterChasePhase();
+					else
+					{
+						newMode = Mode.Chase;
+					}
 				}
 
 				break;
@@ -400,7 +411,8 @@ public partial class Ghost : Actor
 				case Mode.Chase:
 					// любой переход из режима разбегания в режим погони приводит к изменению направления
 
-					nextDirection = GetReverseDirection(direction);
+					if (type != Type.Blinky)
+						nextDirection = GetReverseDirection(direction);
 					break;
 			}
 
@@ -465,9 +477,11 @@ public partial class Ghost : Actor
 	public void GetCurrentPathAStar(List<Vector2I> path, Vector2I pacmanposition)
 	{
 		path.Clear();
+		if (type != Type.Blinky)
+			return;
 
 		if (mode != Mode.Chase && mode != Mode.Scatter && mode != Mode.Eyes)
-			return;
+				return;
 
 		Vector2I start = PositionToTile();
 
@@ -478,7 +492,6 @@ public partial class Ghost : Actor
 		{
 			path.Add(step);
 		}
-
 	}
 
 	// получить путь классическим образом

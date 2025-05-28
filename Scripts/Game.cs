@@ -89,7 +89,7 @@ public partial class Game : Node2D
 	private int ticks;
 	private int freeze;
 	private int level;
-	private int debugmode = 0; // режим демонстрации пути
+	private int debugmode = 1; // режим демонстрации пути
 	private int score;
 	private int highScore;
 	private int numGhostsEaten;
@@ -693,6 +693,13 @@ public partial class Game : Node2D
 	private void DrawGhostsPaths()
 	{
 		Color[] pathColors = new Color[4] { Color.Color8(255, 0, 0, 255), Color.Color8(252, 181, 255, 255), Color.Color8(0, 255, 255, 255), Color.Color8(248, 187, 85, 255) };
+		Color targetTileColor = Color.Color8(127,127,127,255);
+		Color BlinkyTileColor = Color.Color8(64,64,64,255);
+
+		// следы полного страданий дебага
+		// DrawRect(new Rect2I(ghosts[(int)Ghost.Type.Blinky].PositionToTile()*8, new Vector2I(10,10)),BlinkyTileColor);
+		// DrawRect(new Rect2I(ghosts[(int)Ghost.Type.Blinky].targetTile * 8, new Vector2I(10,10)),targetTileColor);
+
 		int pathLineWidth = 2;
 
 		for (int i = 0; i < 4; i++)
